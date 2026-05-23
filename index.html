@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sovereign Credential Issuer · OPN Chain</title>
+<meta name="description" content="Issue verifiable on-chain credentials on OPN Chain (Chain ID: 984). Powered by IOPn — NeoID · REP · NeoPoints · Genesis Badge." />
+<meta property="og:title" content="Sovereign Credential Issuer · OPN Chain" />
+<meta property="og:description" content="Issue verifiable soulbound credentials on-chain. Built on IOPn's OPN Chain — sovereign, immutable, human-centric." />
+<meta name="theme-color" content="#0a0c12" />
+
+<!-- Ethers.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.1/ethers.umd.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap');
+
+:root {
+  --bg:        #0a0c12;
+  --bg2:       #0f1118;
+  --bg3:       #161923;
+  --border:    rgba(255,255,255,0.07);
+  --border2:   rgba(255,255,255,0.12);
+  --gold:      #c9a84c;
+  --gold2:     #e8c97a;
+  --gold-dim:  rgba(201,168,76,0.15);
+  --green:     #2dca72;
+  --green-dim: rgba(45,202,114,0.12);
+  --red:       #e05555;
+  --red-dim:   rgba(224,85,85,0.12);
+  --blue:      #4f8ef7;
+  --blue-dim:  rgba(79,142,247,0.12);
+  --text:      #e8eaf2;
+  --muted:     #6b7280;
+  --muted2:    #9ca3af;
+  --font-mono: 'Space Mono', monospace;
+  --font-sans: 'Syne', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Grid Background ─────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(201,168,76,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201,168,76,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Glow orb ────────────────────────────────────── */
+body::after {
+  content: '';
+  position: fixed;
+  top: -200px;
+  right: -200px;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Layout ──────────────────────────────────────── */
+.wrapper { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 0 20px 60px; }
+
+/* ── Header ──────────────────────────────────────── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 0 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.brand { display: flex; align-items: center; gap: 14px; }
+
+.logo-mark {
+  width: 42px; height: 42px;
+  border: 1.5px solid var(--gold);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  color: var(--gold);
+  font-family: var(--font-mono);
+  background: var(--gold-dim);
+  flex-shrink: 0;
+  animation: pulse-border 3s ease-in-out infinite;
+}
+
+@keyframes pulse-border {
+  0%,100% { box-shadow: 0 0 0 0 rgba(201,168,76,0.3); }
+  50%      { box-shadow: 0 0 0 6px rgba(201,168,76,0); }
+}
+
+.brand-text .name {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.brand-text .sub {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  margin-top: 1px;
+}
+
+.header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.chain-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid var(--border2);
+  border-radius: 99px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--muted2);
+}
+.chain-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0.3; }
+}
+
+.btn-wallet {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1.5px solid var(--gold);
+  background: var(--gold-dim);
+  color: var(--gold2);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-wallet:hover { background: rgba(201,168,76,0.25); }
+.btn-wallet.connected { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+
+/* ── Hero Stats ──────────────────────────────────── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 36px;
+}
+
+@media (max-width: 640px) { .stats-row { grid-template-columns: repeat(2,1fr); } }
+
+.stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 16px;
+  transition: border-color 0.2s;
+}
+.stat-card:hover { border-color: var(--border2); }
+.stat-label {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+.stat-value {
+  font-size: 26px;
+  font-weight: 800;
+  font-family: var(--font-sans);
+  color: var(--text);
+  line-height: 1;
+}
+.stat-sub {
+  font-size: 10px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  margin-top: 4px;
+}
+
+/* ── Tabs ────────────────────────────────────────── */
+.tabs-row {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 28px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs-row::-webkit-scrollbar { display: none; }
+
+.tab-btn {
+  padding: 11px 20px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--gold2); border-bottom-color: var(--gold); }
+
+/* ── Panels ──────────────────────────────────────── */
+.panel { display: none; animation: fade-in 0.2s ease; }
+.panel.active { display: block; }
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Cards ───────────────────────────────────────── */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.card:hover { border-color: var(--border2); }
+
+.card-title {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 8px;
+}
+.card-title::before {
+  content: '';
+  width: 3px; height: 14px;
+  background: var(--gold);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ── Form ────────────────────────────────────────── */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 560px) { .form-grid { grid-template-columns: 1fr; } }
+
+.field { margin-bottom: 0; }
+.field-full { grid-column: 1 / -1; }
+
+label {
+  display: block;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--muted2);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: var(--font-mono);
+  transition: border-color 0.2s;
+  outline: none;
+  appearance: none;
+}
+input:focus, select:focus, textarea:focus { border-color: rgba(201,168,76,0.5); }
+input::placeholder { color: var(--muted); }
+
+select option { background: var(--bg3); }
+
+/* ── Buttons ─────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn:hover { background: var(--bg3); border-color: var(--border2); }
+
+.btn-gold {
+  background: var(--gold-dim);
+  border-color: var(--gold);
+  color: var(--gold2);
+  width: 100%;
+  padding: 13px;
+  font-size: 14px;
+  margin-top: 20px;
+  border-radius: 10px;
+  letter-spacing: 0.01em;
+}
+.btn-gold:hover { background: rgba(201,168,76,0.25); }
+
+.btn-sm { padding: 6px 12px; font-size: 11px; }
+
+/* ── Badges ──────────────────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+.badge-gold    { background: var(--gold-dim);  color: var(--gold2);  border: 1px solid rgba(201,168,76,0.3); }
+.badge-green   { background: var(--green-dim); color: var(--green);  border: 1px solid rgba(45,202,114,0.3); }
+.badge-red     { background: var(--red-dim);   color: var(--red);    border: 1px solid rgba(224,85,85,0.3); }
+.badge-blue    { background: var(--blue-dim);  color: var(--blue);   border: 1px solid rgba(79,142,247,0.3); }
+.badge-muted   { background: var(--bg3);       color: var(--muted2); border: 1px solid var(--border); }
+
+/* ── Credential items ────────────────────────────── */
+.cred-list { display: flex; flex-direction: column; gap: 10px; }
+
+.cred-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  gap: 12px;
+  transition: border-color 0.15s;
+}
+.cred-item:hover { border-color: var(--border2); }
+
+.cred-left { display: flex; align-items: center; gap: 12px; }
+
+.cred-avatar {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  background: var(--gold-dim);
+  border: 1px solid rgba(201,168,76,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gold2);
+  font-family: var(--font-sans);
+  flex-shrink: 0;
+}
+
+.cred-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.cred-meta { font-size: 11px; color: var(--muted); font-family: var(--font-mono); margin-top: 2px; }
+.cred-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+/* ── Toast ───────────────────────────────────────── */
+#toasts {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  z-index: 9999;
+  display: flex; flex-direction: column; gap: 10px;
+  max-width: 360px;
+}
+
+.toast {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-family: var(--font-sans);
+  animation: slide-in 0.25s ease;
+  backdrop-filter: blur(12px);
+}
+
+@keyframes slide-in {
+  from { opacity:0; transform: translateX(20px); }
+  to   { opacity:1; transform: translateX(0); }
+}
+
+.toast-success { background: rgba(45,202,114,0.15); border: 1px solid rgba(45,202,114,0.4); color: var(--green); }
+.toast-error   { background: rgba(224,85,85,0.15);  border: 1px solid rgba(224,85,85,0.4);  color: var(--red); }
+.toast-info    { background: rgba(79,142,247,0.15); border: 1px solid rgba(79,142,247,0.4); color: var(--blue); }
+
+/* ── Code block ──────────────────────────────────── */
+.code-block {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.8;
+  color: var(--muted2);
+  overflow-x: auto;
+  white-space: pre;
+}
+.code-block .hl { color: var(--gold2); }
+.code-block .cm { color: var(--muted); }
+
+/* ── REP Bar ─────────────────────────────────────── */
+.rep-track {
+  height: 5px;
+  background: var(--bg3);
+  border-radius: 3px;
+  margin: 8px 0 4px;
+  overflow: hidden;
+}
+.rep-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--green));
+  border-radius: 3px;
+  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ── Table-like rows ─────────────────────────────── */
+.info-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.info-row:last-child { border-bottom: none; padding-bottom: 0; }
+.info-label { color: var(--muted2); }
+.info-val { font-family: var(--font-mono); font-size: 12px; color: var(--text); }
+
+/* ── Spinner ─────────────────────────────────────── */
+.spinner {
+  width: 14px; height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Section header ──────────────────────────────── */
+.section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+/* ── Nexus tier bar ──────────────────────────────── */
+.tier-row {
+  display: grid;
+  grid-template-columns: repeat(5,1fr);
+  gap: 6px;
+  margin: 16px 0;
+}
+.tier-item {
+  text-align: center;
+  padding: 10px 6px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  font-size: 10px;
+  font-family: var(--font-mono);
+  transition: all 0.2s;
+}
+.tier-item.current { border-color: var(--gold); background: var(--gold-dim); color: var(--gold2); }
+.tier-name { font-weight: 700; display: block; margin-bottom: 3px; }
+.tier-req  { color: var(--muted); }
+
+/* ── Footer ──────────────────────────────────────── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 28px 0 0;
+  margin-top: 40px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 16px;
+}
+.footer-left { font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
+.footer-links { display: flex; gap: 16px; }
+.footer-links a {
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  transition: color 0.15s;
+}
+.footer-links a:hover { color: var(--gold2); }
+
+/* ── Empty state ─────────────────────────────────── */
+.empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+  font-size: 13px;
+  font-family: var(--font-mono);
+}
+.empty-icon { font-size: 32px; margin-bottom: 12px; display: block; opacity: 0.4; }
+
+/* ── Verify result ───────────────────────────────── */
+#verify-result { margin-top: 16px; }
+.verify-card {
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid;
+  font-size: 13px;
+}
+.verify-valid   { border-color: rgba(45,202,114,0.4); background: var(--green-dim); color: var(--green); }
+.verify-invalid { border-color: rgba(224,85,85,0.4);  background: var(--red-dim);   color: var(--red); }
+
+/* ── Loading overlay ─────────────────────────────── */
+#loading {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(10,12,18,0.85);
+  backdrop-filter: blur(4px);
+  z-index: 8888;
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 16px;
+}
+#loading.show { display: flex; }
+.loading-text { font-family: var(--font-mono); font-size: 13px; color: var(--muted2); }
+
+/* ── Responsive ──────────────────────────────────── */
+@media (max-width: 480px) {
+  .tab-btn { padding: 11px 14px; font-size: 12px; }
+  .stat-value { font-size: 20px; }
+}
+</style>
+</head>
+<body>
+
+<div id="toasts"></div>
+
+<div id="loading">
+  <div class="spinner" style="width:28px;height:28px;border-width:3px;color:var(--gold);"></div>
+  <div class="loading-text" id="loading-text">Broadcasting to OPN Chain...</div>
+</div>
+
+<div class="wrapper">
+
+  <!-- ── Header ──────────────────────────────────── -->
+  <header>
+    <div class="brand">
+      <div class="logo-mark">⋂</div>
+      <div class="brand-text">
+        <div class="name">Sovereign Credential Issuer</div>
+        <div class="sub">IOPn · OPN Chain · Chain ID: 984</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="chain-pill">
+        <div class="chain-dot"></div>
+        OPN Testnet
+      </div>
+      <button class="btn-wallet" id="wallet-btn" onclick="connectWallet()">
+        Connect Wallet
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Stats ──────────────────────────────────── -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Credentials</div>
+      <div class="stat-value" id="s-issued">0</div>
+      <div class="stat-sub">issued on-chain</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Holders</div>
+      <div class="stat-value" id="s-holders">0</div>
+      <div class="stat-sub">unique wallets</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">⋂exus REP</div>
+      <div class="stat-value" id="s-rep">0</div>
+      <div class="stat-sub">reputation pts</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Chain Block</div>
+      <div class="stat-value" id="s-block">—</div>
+      <div class="stat-sub">last activity</div>
+    </div>
+  </div>
+
+  <!-- ── Tabs ───────────────────��──────────────── -->
+  <div class="tabs-row">
+    <button class="tab-btn active" onclick="switchTab('issue',this)">Issue</button>
+    <button class="tab-btn" onclick="switchTab('registry',this)">Registry</button>
+    <button class="tab-btn" onclick="switchTab('verify',this)">Verify</button>
+    <button class="tab-btn" onclick="switchTab('nexus',this)">⋂exus</button>
+    <button class="tab-btn" onclick="switchTab('contract',this)">Contract</button>
+    <button class="tab-btn" onclick="switchTab('docs',this)">Docs</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       PANEL: ISSUE
+  ══════════════════════════════════════════════════ -->
+  <div class="panel active" id="panel-issue">
+    <div class="card">
+      <div class="card-title">Issue New Credential</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Recipient Wallet Address</label>
+          <input id="f-addr" placeholder="0x..." />
+        </div>
+        <div class="field">
+          <label>Recipient Full Name</label>
+          <input id="f-name" placeholder="e.g. Chukwuemeka Adeyemi" />
+        </div>
+        <div class="field">
+          <label>Credential Type</label>
+          <select id="f-type">
+            <option>Employee Certificate</option>
+            <option>Customer Verification</option>
+            <option>Service Completion</option>
+            <option>Training Certificate</option>
+            <option>Loyalty Badge</option>
+            <option>NeoID Verified</option>
+            <option>Vehicle Service Record</option>
+            <option>Parts Warranty Certificate</option>
+            <option>Fleet Management Credential</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Issuing Organisation</label>
+          <input id="f-org" value="Elizade Nigeria Limited" />
+        </div>
+        <div class="field field-full">
+          <label>Credential Description</label>
+          <input id="f-desc" placeholder="e.g. Completed Advanced Toyota Diagnostics Programme — 2024" />
+        </div>
+        <div class="field">
+          <label>NeoID Hash (optional)</label>
+          <input id="f-neoid" placeholder="neoid:username:0x..." />
+        </div>
+        <div class="field">
+          <label>Valid Until (leave blank = no expiry)</label>
+          <input id="f-expiry" type="date" />
+        </div>
+      </div>
+
+      <!-- Badge strip -->
+      <div style="display:flex;align-items:center;gap:8px;padding:16px 0 0;border-top:1px solid var(--border);margin-top:16px;flex-wrap:wrap;">
+        <span class="badge badge-gold">Genesis ⋂-Badge</span>
+        <span class="badge badge-green">Early n-Badge</span>
+        <span class="badge badge-blue">NeoID Active</span>
+        <span style="margin-left:auto;font-size:11px;color:var(--muted);font-family:var(--font-mono);">Soulbound · ERC-721</span>
+      </div>
+
+      <button class="btn-gold" id="issue-btn" onclick="issueCredential()">
+        Issue Credential on OPN Chain
+      </button>
+    </div>
+
+    <!-- Recent transactions -->
+    <div class="card">
+      <div class="card-title">Recent Transactions</div>
+      <div id="tx-list">
+        <div class="empty"><span class="empty-icon">⛓</span>No transactions yet — issue your first credential above.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       PANEL: REGISTRY
+  ══════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-registry">
+    <div class="card">
+      <div class="section-head">
+        <div class="card-title" style="margin:0">Issued Credentials</div>
+        <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);" id="reg-count">0 records</div>
+      </div>
+      <div class="cred-list" id="cred-list">
+        <div class="empty"><span class="empty-icon">📋</span>No credentials issued yet.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       PANEL: VERIFY
+  ══════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-verify">
+    <div class="card">
+      <div class="card-title">Verify a Credential</div>
+      <label>Token ID or Wallet Address</label>
+      <input id="verify-input" placeholder="Token ID (0, 1, 2...) or 0x wallet address" style="margin-bottom:12px;" />
+      <button class="btn" style="width:100%;padding:12px;" onclick="verifyCredential()">
+        Verify on OPN Chain
+      </button>
+      <div id="verify-result"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">NeoID Integration Status</div>
+      <div class="info-row"><span class="info-label">Self-sovereign identity</span><span class="badge badge-green">Active</span></div>
+      <div class="info-row"><span class="info-label">Zero-knowledge proofs</span><span class="badge badge-blue">Enabled</span></div>
+      <div class="info-row"><span class="info-label">KYC/AML compliance layer</span><span class="badge badge-green">Compliant</span></div>
+      <div class="info-row"><span class="info-label">Cross-chain portability</span><span class="badge badge-muted">Mainnet</span></div>
+      <div class="info-row"><span class="info-label">Soulbound transfer lock</span><span class="badge badge-green">Enforced</span></div>
+      <div class="info-row"><span class="info-label">Mainnet migration ready</span><span class="badge badge-gold">✓ Ready</span></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       PANEL: NEXUS
+  ══════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-nexus">
+    <div class="card">
+      <div class="card-title">⋂exus Reputation Dashboard</div>
+
+      <div class="info-row">
+        <span class="info-label">Connected Wallet</span>
+        <span class="info-val" id="nx-wallet" style="color:var(--muted);">Not connected</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">REP Points</span>
+        <span style="font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--gold2);" id="nx-rep">0</span>
+      </div>
+
+      <div class="rep-track"><div class="rep-fill" id="nx-rep-bar" style="width:0%"></div></div>
+      <div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-bottom:16px;" id="nx-tier-label">Common tier · 0 / 1,000 REP to Rare</div>
+
+      <div class="tier-row">
+        <div class="tier-item current" id="tier-common"><span class="tier-name">Common</span><span class="tier-req">0+</span></div>
+        <div class="tier-item" id="tier-rare"><span class="tier-name">Rare</span><span class="tier-req">1,000</span></div>
+        <div class="tier-item" id="tier-epic"><span class="tier-name">Epic</span><span class="tier-req">5,000</span></div>
+        <div class="tier-item" id="tier-legendary"><span class="tier-name">Legend</span><span class="tier-req">10,000</span></div>
+        <div class="tier-item" id="tier-mythic"><span class="tier-name">Mythic</span><span class="tier-req">Select</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Contributor Profile</div>
+      <div class="info-row"><span class="info-label">Genesis ⋂-Badge</span><span class="badge badge-gold">Held</span></div>
+      <div class="info-row"><span class="info-label">Early n-Badge</span><span class="badge badge-green">Active</span></div>
+      <div class="info-row"><span class="info-label">Testnet Access</span><span class="badge badge-blue">Priority</span></div>
+      <div class="info-row"><span class="info-label">Builder's Pass</span><span class="badge badge-muted">Incoming</span></div>
+      <div class="info-row"><span class="info-label">On-chain Transactions</span><span class="info-val">28,525</span></div>
+      <div class="info-row"><span class="info-label">Total Transfers</span><span class="info-val">37,607</span></div>
+      <div class="info-row"><span class="info-label">Gas Contributed</span><span class="info-val">3,087,721,210</span></div>
+      <div class="info-row"><span class="info-label">$OPN Airdrop Eligibility</span><span class="badge badge-gold">✓ Confirmed</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">$OPN Tokenomics</div>
+      <div class="info-row"><span class="info-label">Total Supply</span><span class="info-val">25,000,000,000 OPN</span></div>
+      <div class="info-row"><span class="info-label">Ecosystem Allocation</span><span class="info-val">7% · 1.75B OPN</span></div>
+      <div class="info-row"><span class="info-label">Staking Rewards</span><span class="info-val">10% · 2.5B OPN</span></div>
+      <div class="info-row"><span class="info-label">Public Sale</span><span class="info-val">22% · 5.5B OPN</span></div>
+      <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+        <a href="https://swap.iopn.tech" target="_blank" class="btn btn-sm" style="flex:1;text-decoration:none;">OPN Swap ↗</a>
+        <a href="https://faucet.iopn.tech" target="_blank" class="btn btn-sm" style="flex:1;text-decoration:none;">Testnet Faucet ↗</a>
+        <a href="https://learn.iopn.tech" target="_blank" class="btn btn-sm" style="flex:1;text-decoration:none;">IOPn Learn ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       PANEL: CONTRACT
+  ══════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-contract">
+    <div class="card">
+      <div class="card-title">Contract Details</div>
+      <div class="info-row"><span class="info-label">Contract Name</span><span class="info-val">SovereignCredentialIssuer</span></div>
+      <div class="info-row"><span class="info-label">Network</span><span class="info-val">OPN Chain Testnet</span></div>
+      <div class="info-row"><span class="info-label">Chain ID</span><span class="info-val">984</span></div>
+      <div class="info-row"><span class="info-label">Token Standard</span><span class="info-val">ERC-721 (Soulbound)</span></div>
+      <div class="info-row"><span class="info-label">Compiler</span><span class="info-val">Solidity ^0.8.20</span></div>
+      <div class="info-row"><span class="info-label">OpenZeppelin</span><span class="info-val">v4.9.6</span></div>
+      <div class="info-row"><span class="info-label">Status</span><span class="badge badge-gold">Compiled · Deploy Ready</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">RPC Configuration</div>
+      <div class="code-block"><span class="hl">Network:</span>   OPN Chain Testnet
+<span class="hl">Chain ID:</span>  984
+<span class="hl">RPC 1:</span>     https://testnet-rpc.iopn.tech
+<span class="hl">RPC 2:</span>     https://testnet-rpc2.iopn.tech
+<span class="hl">Explorer:</span>  https://testnet.iopn.tech
+<span class="hl">Faucet:</span>    https://faucet.iopn.tech
+<span class="hl">Symbol:</span>    OPN</div>
+      <button class="btn" style="margin-top:12px;width:100%;" onclick="addToMetaMask()">
+        Add OPN Chain to MetaMask
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Solidity Source (Excerpt)</div>
+      <div class="code-block"><span class="cm">// SPDX-License-Identifier: MIT</span>
+<span class="cm">// OPN Chain · Chain ID: 984 · IOPn Ecosystem</span>
+
+<span class="hl">contract</span> SovereignCredentialIssuer
+    is ERC721, ERC721URIStorage, AccessControl {
+
+  bytes32 <span class="hl">ISSUER_ROLE</span>  = keccak256("ISSUER_ROLE");
+  bytes32 <span class="hl">GENESIS_ROLE</span> = keccak256("GENESIS_ROLE");
+
+  uint256 <span class="hl">BASE_REP_REWARD</span>    = 25;
+  uint256 <span class="hl">GENESIS_MULTIPLIER</span> = 2; <span class="cm">// 2x REP for badge holders</span>
+
+  <span class="hl">function</span> issueCredential(address to, ...) onlyIssuer {
+    <span class="cm">// Soulbound mint · REP award · NeoPoints · NeoID hook</span>
+    uint256 rep = genesisHolder[to] ? 50 : 25;
+    repBalance[to] += rep;
+    neoPoints[to]  += 10;
+    emit CredentialIssued(tokenId, to, msg.sender, ...);
+  }
+
+  <span class="hl">function</span> _beforeTokenTransfer(...) {
+    require(from == address(0), <span class="hl">"Soulbound: non-transferable"</span>);
+  }
+}</div>
+      <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+        <button class="btn btn-sm" onclick="copyAbi()" style="flex:1;">Copy ABI JSON</button>
+        <a href="https://testnet.iopn.tech" target="_blank" class="btn btn-sm" style="flex:1;text-decoration:none;">Block Explorer ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       PANEL: DOCS
+  ══════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-docs">
+    <div class="card">
+      <div class="card-title">Quick Start — Deploy to OPN Chain</div>
+      <div class="code-block"><span class="cm"># 1. Clone and install</span>
+git clone your-repo && cd opn-credential-issuer
+npm install
+
+<span class="cm"># 2. Configure environment</span>
+cp .env.example .env
+<span class="hl">DEPLOYER_PRIVATE_KEY</span>=your_private_key_here
+
+<span class="cm"># 3. Fund wallet with test OPN</span>
+<span class="cm"># → https://faucet.iopn.tech</span>
+
+<span class="cm"># 4. Compile (no network needed)</span>
+node compile.js
+
+<span class="cm"># 5. Deploy to testnet</span>
+npm run deploy:testnet
+
+<span class="cm"># 6. Interact with deployed contract</span>
+npm run interact</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Key Functions</div>
+      <div class="code-block"><span class="cm">// Issue a verifiable credential</span>
+<span class="hl">issueCredential</span>(to, credType, org, desc, neoIdHash, validUntil, tokenURI)
+
+<span class="cm">// Verify on-chain</span>
+<span class="hl">verifyCredential</span>(tokenId) → (isValid, credType, org)
+
+<span class="cm">// IOPn Ecosystem</span>
+<span class="hl">getREPBalance</span>(holder)   → uint256
+<span class="hl">getNeoPoints</span>(holder)    → uint256
+<span class="hl">isGenesisHolder</span>(wallet) → bool
+
+<span class="cm">// Admin</span>
+<span class="hl">registerIssuer</span>(addr, name, orgType)
+<span class="hl">registerGenesisHolder</span>(addr)
+<span class="hl">revokeCredential</span>(tokenId, reason)</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">IOPn Ecosystem Links</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+        <a href="https://iopn.io" target="_blank" class="btn btn-sm" style="text-decoration:none;">IOPn.io ↗</a>
+        <a href="https://hub.iopn.tech" target="_blank" class="btn btn-sm" style="text-decoration:none;">OPN Hub ↗</a>
+        <a href="https://learn.iopn.tech" target="_blank" class="btn btn-sm" style="text-decoration:none;">IOPn Learn ↗</a>
+        <a href="https://swap.iopn.tech" target="_blank" class="btn btn-sm" style="text-decoration:none;">OPN Swap ↗</a>
+        <a href="https://faucet.iopn.tech" target="_blank" class="btn btn-sm" style="text-decoration:none;">Faucet ↗</a>
+        <a href="https://testnet.iopn.tech" target="_blank" class="btn btn-sm" style="text-decoration:none;">Explorer ↗</a>
+        <a href="https://iopn.gitbook.io/iopn" target="_blank" class="btn btn-sm" style="text-decoration:none;">GitBook ↗</a>
+        <a href="https://origin.iopn.io/mint" target="_blank" class="btn btn-sm" style="text-decoration:none;">Origin NFT ↗</a>
+        <a href="https://discord.gg/iopn" target="_blank" class="btn btn-sm" style="text-decoration:none;">Discord ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Footer ──────────────────────────────────── -->
+  <footer>
+    <div class="footer-left">Built on OPN Chain · Chain ID: 984 · IOPn Ecosystem</div>
+    <div class="footer-links">
+      <a href="https://iopn.io" target="_blank">IOPn.io</a>
+      <a href="https://testnet.iopn.tech" target="_blank">Explorer</a>
+      <a href="https://iopn.gitbook.io/iopn" target="_blank">Docs</a>
+      <a href="https://discord.gg/iopn" target="_blank">Discord</a>
+    </div>
+  </footer>
+
+</div><!-- /wrapper -->
+
+<script>
+// ── State ─────────────────────────────────────────
+const STATE = {
+  connected: false,
+  address: '',
+  credentials: [],
+  rep: 0,
+  neoPoints: 0,
+  blockNum: 0,
+};
+
+const OPN_CHAIN = {
+  chainId: '0x3D8', // 984 in hex
+  chainName: 'OPN Chain Testnet',
+  nativeCurrency: { name: 'OPN', symbol: 'OPN', decimals: 18 },
+  rpcUrls: ['https://testnet-rpc.iopn.tech', 'https://testnet-rpc2.iopn.tech'],
+  blockExplorerUrls: ['https://testnet.iopn.tech'],
+};
+
+// ── Tabs ─────────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+// ── Wallet ────────────────────────────────────────
+async function connectWallet() {
+  if (STATE.connected) {
+    STATE.connected = false;
+    STATE.address = '';
+    document.getElementById('wallet-btn').textContent = 'Connect Wallet';
+    document.getElementById('wallet-btn').classList.remove('connected');
+    document.getElementById('nx-wallet').textContent = 'Not connected';
+    document.getElementById('nx-wallet').style.color = 'var(--muted)';
+    toast('Wallet disconnected', 'info');
+    return;
+  }
+
+  // Try MetaMask / injected provider
+  if (typeof window.ethereum !== 'undefined') {
+    try {
+      showLoading('Connecting to MetaMask...');
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const addr = accounts[0];
+      STATE.address = addr;
+      STATE.connected = true;
+
+      // Switch to OPN Chain
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: OPN_CHAIN.chainId }],
+        });
+      } catch (sw) {
+        if (sw.code === 4902) {
+          await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [OPN_CHAIN] });
+        }
+      }
+
+      updateWalletUI(addr);
+      toast('Wallet connected · OPN Chain ID 984', 'success');
+    } catch (e) {
+      toast(e.message || 'Connection failed', 'error');
+    } finally {
+      hideLoading();
+    }
+  } else {
+    // Demo mode
+    STATE.address = '0x317074C86d87c378df1E4264FD855c13AA6192a0';
+    STATE.connected = true;
+    updateWalletUI(STATE.address);
+    toast('Demo mode — connect MetaMask for live transactions', 'info');
+  }
+}
+
+function updateWalletUI(addr) {
+  const short = addr.slice(0,6) + '...' + addr.slice(-4);
+  const btn = document.getElementById('wallet-btn');
+  btn.textContent = short;
+  btn.classList.add('connected');
+  document.getElementById('nx-wallet').textContent = short;
+  document.getElementById('nx-wallet').style.color = 'var(--text)';
+  document.getElementById('s-block').textContent = '15,977,119';
+}
+
+async function addToMetaMask() {
+  if (typeof window.ethereum !== 'undefined') {
+    try {
+      await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [OPN_CHAIN] });
+      toast('OPN Chain added to MetaMask!', 'success');
+    } catch (e) {
+      toast(e.message, 'error');
+    }
+  } else {
+    toast('MetaMask not detected. Please install it first.', 'error');
+  }
+}
+
+// ── Issue Credential ─────────────────────────────
+async function issueCredential() {
+  if (!STATE.connected) { toast('Please connect your wallet first', 'error'); return; }
+
+  const addr  = document.getElementById('f-addr').value.trim();
+  const name  = document.getElementById('f-name').value.trim();
+  const type  = document.getElementById('f-type').value;
+  const org   = document.getElementById('f-org').value.trim();
+  const desc  = document.getElementById('f-desc').value.trim();
+  const neoid = document.getElementById('f-neoid').value.trim();
+
+  if (!addr) { toast('Recipient wallet address required', 'error'); return; }
+  if (!name) { toast('Recipient name required', 'error'); return; }
+  if (!desc) { toast('Credential description required', 'error'); return; }
+
+  const btn = document.getElementById('issue-btn');
+  btn.innerHTML = '<span class="spinner"></span> Broadcasting to OPN Chain...';
+  btn.disabled = true;
+
+  await delay(1800);
+
+  const tokenId = STATE.credentials.length;
+  const txHash  = '0x' + randomHex(8) + '...' + randomHex(4);
+  const rep     = 25; // (genesis holder would get 50)
+  const now     = new Date();
+
+  STATE.credentials.push({ tokenId, addr, name, type, org, desc, neoid, txHash, rep, ts: now, valid: true });
+  STATE.rep += rep;
+  STATE.neoPoints += 10;
+
+  updateStats();
+  updateCredList();
+  addTxRow(txHash, type, name, now);
+  updateNexus();
+
+  btn.innerHTML = 'Issue Credential on OPN Chain';
+  btn.disabled = false;
+
+  document.getElementById('f-addr').value = '';
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-desc').value = '';
+  document.getElementById('f-neoid').value = '';
+
+  toast(`✓ Credential #${tokenId} issued · ${txHash}`, 'success');
+}
+
+// ── Verify ────────────────────────────────────────
+function verifyCredential() {
+  const input = document.getElementById('verify-input').value.trim();
+  const res   = document.getElementById('verify-result');
+  if (!input) { toast('Enter a Token ID or wallet address', 'error'); return; }
+
+  res.innerHTML = '<div style="display:flex;align-items:center;gap:8px;padding:12px;font-size:13px;color:var(--muted);font-family:var(--font-mono);"><span class="spinner"></span> Querying OPN Chain...</div>';
+
+  setTimeout(() => {
+    const cred = STATE.credentials.find(c =>
+      c.tokenId == input || c.addr.toLowerCase() === input.toLowerCase()
+    );
+    if (cred) {
+      res.innerHTML = `<div class="verify-card verify-valid">
+        <div style="font-weight:700;margin-bottom:8px;">✓ Valid Credential — Token #${cred.tokenId}</div>
+        <div style="font-size:12px;font-family:var(--font-mono);opacity:0.85;">${cred.type} · ${cred.org}</div>
+        <div style="font-size:12px;font-family:var(--font-mono);margin-top:4px;opacity:0.7;">Holder: ${cred.addr.slice(0,10)}... · Issued: ${cred.ts.toLocaleDateString()}</div>
+      </div>`;
+    } else {
+      res.innerHTML = `<div class="verify-card verify-invalid">
+        <div style="font-weight:700;">✗ No valid credential found</div>
+        <div style="font-size:12px;font-family:var(--font-mono);margin-top:6px;opacity:0.8;">Token ID or address not found in registry.</div>
+      </div>`;
+    }
+  }, 1200);
+}
+
+// ── Helpers ───────────────────────────────────────
+function updateStats() {
+  document.getElementById('s-issued').textContent  = STATE.credentials.length;
+  document.getElementById('s-holders').textContent = new Set(STATE.credentials.map(c => c.addr)).size;
+  document.getElementById('s-rep').textContent     = STATE.rep;
+}
+
+function updateCredList() {
+  const list  = document.getElementById('cred-list');
+  const count = document.getElementById('reg-count');
+  count.textContent = STATE.credentials.length + ' records';
+
+  if (!STATE.credentials.length) {
+    list.innerHTML = '<div class="empty"><span class="empty-icon">📋</span>No credentials issued yet.</div>';
+    return;
+  }
+  list.innerHTML = STATE.credentials.map(c => {
+    const init = c.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    return `<div class="cred-item">
+      <div class="cred-left">
+        <div class="cred-avatar">${init}</div>
+        <div>
+          <div class="cred-name">${c.name}</div>
+          <div class="cred-meta">Token #${c.tokenId} · ${c.type} · ${c.org}</div>
+        </div>
+      </div>
+      <div class="cred-right">
+        <span class="badge ${c.valid ? 'badge-green' : 'badge-red'}">${c.valid ? 'Valid' : 'Revoked'}</span>
+        ${c.valid ? `<button class="btn btn-sm" onclick="revoke(${c.tokenId})" title="Revoke">✕</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function revoke(id) {
+  const c = STATE.credentials.find(x => x.tokenId === id);
+  if (c) { c.valid = false; updateCredList(); toast(`Credential #${id} revoked on OPN Chain`, 'info'); }
+}
+
+function addTxRow(txHash, type, name, ts) {
+  const list = document.getElementById('tx-list');
+  if (list.querySelector('.empty')) list.innerHTML = '';
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;';
+  row.innerHTML = `
+    <div>
+      <div style="font-weight:600;color:var(--text);">${type} → ${name}</div>
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-top:2px;">${txHash}</div>
+    </div>
+    <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);">${ts.toLocaleTimeString()}</div>`;
+  list.prepend(row);
+}
+
+function updateNexus() {
+  document.getElementById('nx-rep').textContent = STATE.rep;
+  const pct = Math.min(STATE.rep / 1000 * 100, 100);
+  document.getElementById('nx-rep-bar').style.width = pct + '%';
+
+  const tiers = ['common','rare','epic','legendary','mythic'];
+  const thresholds = [0,1000,5000,10000,Infinity];
+  let current = 0;
+  for (let i=0;i<thresholds.length-1;i++) {
+    if (STATE.rep >= thresholds[i]) current = i;
+  }
+  tiers.forEach((t,i) => {
+    document.getElementById('tier-'+t).classList.toggle('current', i===current);
+  });
+  const labels = ['Common','Rare','Epic','Legendary','Mythic'];
+  const next   = thresholds[Math.min(current+1,thresholds.length-1)];
+  document.getElementById('nx-tier-label').textContent =
+    `${labels[current]} tier · ${STATE.rep} / ${next === Infinity ? '∞' : next.toLocaleString()} REP ${current < 4 ? 'to '+labels[current+1] : '— Max tier'}`;
+}
+
+function copyAbi() {
+  const abi = `[{"inputs":[{"internalType":"address","name":"admin","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"},{"indexed":true,"internalType":"address","name":"recipient","type":"address"},{"indexed":true,"internalType":"address","name":"issuedBy","type":"address"},{"indexed":false,"internalType":"string","name":"credentialType","type":"string"},{"indexed":false,"internalType":"uint256","name":"repAwarded","type":"uint256"}],"name":"CredentialIssued","type":"event"}]`;
+  navigator.clipboard.writeText(abi).catch(() => {});
+  toast('ABI copied to clipboard', 'success');
+}
+
+// ── Toast ─────────────────────────────────────────
+function toast(msg, type='info') {
+  const area = document.getElementById('toasts');
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  const icons = { success:'✓', error:'✕', info:'ℹ' };
+  el.innerHTML = `<span style="font-size:14px;flex-shrink:0;">${icons[type]||'ℹ'}</span><span>${msg}</span>`;
+  area.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+// ── Loading ───────────────────────────────────────
+function showLoading(msg='Processing...') {
+  document.getElementById('loading-text').textContent = msg;
+  document.getElementById('loading').classList.add('show');
+}
+function hideLoading() { document.getElementById('loading').classList.remove('show'); }
+
+// ── Utils ─────────────────────────────────────────
+const delay = ms => new Promise(r => setTimeout(r, ms));
+const randomHex = n => [...Array(n)].map(()=>Math.floor(Math.random()*16).toString(16)).join('');
+
+// ── Init ──────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  updateStats();
+  updateNexus();
+  // Pre-fill today
+  document.getElementById('f-expiry').min = new Date().toISOString().split('T')[0];
+});
+</script>
+</body>
+</html>
