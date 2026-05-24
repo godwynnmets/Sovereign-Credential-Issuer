@@ -1,0 +1,120 @@
+[
+  {
+    "inputs": [
+      { "internalType": "address", "name": "admin", "type": "address" }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "internalType": "uint256", "name": "tokenId", "type": "uint256" },
+      { "indexed": true, "internalType": "address", "name": "to", "type": "address" },
+      { "indexed": true, "internalType": "address", "name": "issuer", "type": "address" },
+      { "indexed": false, "internalType": "string", "name": "credentialType", "type": "string" },
+      { "indexed": false, "internalType": "string", "name": "organization", "type": "string" }
+    ],
+    "name": "CredentialIssued",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "internalType": "uint256", "name": "tokenId", "type": "uint256" },
+      { "indexed": false, "internalType": "string", "name": "reason", "type": "string" }
+    ],
+    "name": "CredentialRevoked",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "to", "type": "address" },
+      { "internalType": "string", "name": "credentialType", "type": "string" },
+      { "internalType": "string", "name": "organization", "type": "string" },
+      { "internalType": "string", "name": "description", "type": "string" },
+      { "internalType": "string", "name": "neoIdHash", "type": "string" },
+      { "internalType": "uint256", "name": "validUntil", "type": "uint256" },
+      { "internalType": "string", "name": "tokenURI", "type": "string" }
+    ],
+    "name": "issueCredential",
+    "outputs": [ { "internalType": "uint256", "name": "", "type": "uint256" } ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [ { "internalType": "uint256", "name": "tokenId", "type": "uint256" } ],
+    "name": "verifyCredential",
+    "outputs": [
+      { "internalType": "bool", "name": "isValid", "type": "bool" },
+      { "internalType": "string", "name": "credentialType", "type": "string" },
+      { "internalType": "string", "name": "organization", "type": "string" },
+      { "internalType": "address", "name": "holder", "type": "address" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [ { "internalType": "address", "name": "holder", "type": "address" } ],
+    "name": "getREPBalance",
+    "outputs": [ { "internalType": "uint256", "name": "", "type": "uint256" } ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [ { "internalType": "address", "name": "holder", "type": "address" } ],
+    "name": "getNeoPoints",
+    "outputs": [ { "internalType": "uint256", "name": "", "type": "uint256" } ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [ { "internalType": "address", "name": "wallet", "type": "address" } ],
+    "name": "isGenesisHolder",
+    "outputs": [ { "internalType": "bool", "name": "", "type": "bool" } ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "issuerAddr", "type": "address" },
+      { "internalType": "string", "name": "issuerName", "type": "string" },
+      { "internalType": "string", "name": "orgType", "type": "string" }
+    ],
+    "name": "registerIssuer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [ { "internalType": "address", "name": "addr", "type": "address" } ],
+    "name": "registerGenesisHolder",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "tokenId", "type": "uint256" },
+      { "internalType": "string", "name": "reason", "type": "string" }
+    ],
+    "name": "revokeCredential",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalCredentialsIssued",
+    "outputs": [ { "internalType": "uint256", "name": "", "type": "uint256" } ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalHolders",
+    "outputs": [ { "internalType": "uint256", "name": "", "type": "uint256" } ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
