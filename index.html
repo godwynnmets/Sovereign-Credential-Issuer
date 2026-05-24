@@ -7,6 +7,7 @@
 <meta name="description" content="Issue verifiable on-chain credentials on OPN Chain (Chain ID: 984). Powered by IOPn — NeoID · REP · NeoPoints · Genesis Badge." />
 <meta property="og:title" content="Sovereign Credential Issuer · OPN Chain" />
 <meta property="og:description" content="Issue verifiable soulbound credentials on-chain. Built on IOPn's OPN Chain — sovereign, immutable, human-centric." />
+<meta property="og:url" content="https://godwynnmets.github.io/Sovereign-Credential-Issuer/" />
 <meta name="theme-color" content="#0a0c12" />
 
 <!-- Ethers.js -->
@@ -125,6 +126,20 @@ header {
 
 .header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
+.session-badge {
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: rgba(245,158,11,0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(245,158,11,0.3);
+  font-family: var(--font-mono);
+  display: none;
+  align-items: center;
+  gap: 4px;
+}
+.session-badge.show { display: inline-flex; animation: fade-in 0.3s ease; }
+
 .chain-pill {
   display: flex; align-items: center; gap: 6px;
   padding: 5px 12px;
@@ -209,6 +224,7 @@ header {
   margin-bottom: 28px;
   overflow-x: auto;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 .tabs-row::-webkit-scrollbar { display: none; }
 
@@ -225,6 +241,7 @@ header {
   margin-bottom: -1px;
   transition: all 0.15s;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 .tab-btn:hover { color: var(--text); }
 .tab-btn.active { color: var(--gold2); border-bottom-color: var(--gold); }
@@ -313,6 +330,7 @@ select option { background: var(--bg3); }
   font-family: var(--font-sans);
   cursor: pointer;
   transition: all 0.15s;
+  text-decoration: none;
 }
 .btn:hover { background: var(--bg3); border-color: var(--border2); }
 
@@ -495,8 +513,8 @@ footer {
   display: flex; align-items: center; justify-content: space-between;
   flex-wrap: wrap; gap: 16px;
 }
-.footer-left { font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
-.footer-links { display: flex; gap: 16px; }
+.footer-left { font-size: 12px; color: var(--muted); font-family: var(--font-mono); line-height: 1.6; }
+.footer-links { display: flex; gap: 16px; flex-wrap: wrap; }
 .footer-links a {
   font-size: 12px;
   color: var(--muted);
@@ -505,6 +523,23 @@ footer {
   transition: color 0.15s;
 }
 .footer-links a:hover { color: var(--gold2); }
+
+.ft-repo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid rgba(201,168,76,0.3);
+  border-radius: 6px;
+  background: var(--gold-dim);
+  color: var(--gold2);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  text-decoration: none;
+  transition: all 0.15s;
+}
+.ft-repo:hover { background: rgba(201,168,76,0.22); }
 
 /* ── Empty state ─────────────────────────────────── */
 .empty {
@@ -544,6 +579,8 @@ footer {
 @media (max-width: 480px) {
   .tab-btn { padding: 11px 14px; font-size: 12px; }
   .stat-value { font-size: 20px; }
+  header { gap: 8px; }
+  .header-right { gap: 6px; }
 }
 </style>
 </head>
@@ -568,6 +605,7 @@ footer {
       </div>
     </div>
     <div class="header-right">
+      <span class="session-badge" id="session-badge">⚡ Session restored</span>
       <div class="chain-pill">
         <div class="chain-dot"></div>
         OPN Testnet
@@ -602,7 +640,7 @@ footer {
     </div>
   </div>
 
-  <!-- ── Tabs ───────────────────��──────────────── -->
+  <!-- ── Tabs ────────────────────────────────────── -->
   <div class="tabs-row">
     <button class="tab-btn active" onclick="switchTab('issue',this)">Issue</button>
     <button class="tab-btn" onclick="switchTab('registry',this)">Registry</button>
@@ -777,7 +815,7 @@ footer {
 
   <!-- ══════════════════════════════════════════════
        PANEL: CONTRACT
-  ══════════════════════════════════════════════════ -->
+  ════════════════════════════════════════════════���═ -->
   <div class="panel" id="panel-contract">
     <div class="card">
       <div class="card-title">Contract Details</div>
@@ -832,7 +870,8 @@ footer {
 }</div>
       <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
         <button class="btn btn-sm" onclick="copyAbi()" style="flex:1;">Copy ABI JSON</button>
-        <a href="https://testnet.iopn.tech" target="_blank" class="btn btn-sm" style="flex:1;text-decoration:none;">Block Explorer ↗</a>
+        <a href="https://github.com/GodwynnMets/Sovereign-Credential-Issuer" target="_blank" class="btn btn-sm" style="flex:1;text-decoration:none;">GitHub ↗</a>
+        <a href="https://testnet.iopn.tech" target="_blank" class="btn btn-sm" style="flex:1;text-decoration:none;">Explorer ↗</a>
       </div>
     </div>
   </div>
@@ -843,9 +882,13 @@ footer {
   <div class="panel" id="panel-docs">
     <div class="card">
       <div class="card-title">Quick Start — Deploy to OPN Chain</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+        <div style="font-size:12px;color:var(--muted2);">Open-source · MIT License · Fork on GitHub</div>
+        <a href="https://github.com/GodwynnMets/Sovereign-Credential-Issuer" target="_blank" class="btn btn-sm" style="text-decoration:none;">⭐ Star on GitHub ↗</a>
+      </div>
       <div class="code-block"><span class="cm"># 1. Clone and install</span>
-git clone your-repo && cd opn-credential-issuer
-npm install
+git clone https://github.com/GodwynnMets/Sovereign-Credential-Issuer
+cd opn-credential-issuer && npm install
 
 <span class="cm"># 2. Configure environment</span>
 cp .env.example .env
@@ -901,18 +944,38 @@ npm run interact</div>
 
   <!-- ── Footer ──────────────────────────────────── -->
   <footer>
-    <div class="footer-left">Built on OPN Chain · Chain ID: 984 · IOPn Ecosystem</div>
+    <div class="footer-left">
+      Built on OPN Chain · Chain ID: 984 · IOPn Ecosystem<br/>
+      Sovereign Credential Issuer v1.1 · MIT License<br/>
+      Elizade Nigeria Limited · Godwin Metsagharun
+    </div>
     <div class="footer-links">
-      <a href="https://iopn.io" target="_blank">IOPn.io</a>
-      <a href="https://testnet.iopn.tech" target="_blank">Explorer</a>
-      <a href="https://iopn.gitbook.io/iopn" target="_blank">Docs</a>
-      <a href="https://discord.gg/iopn" target="_blank">Discord</a>
+      <a href="https://github.com/GodwynnMets/Sovereign-Credential-Issuer" target="_blank" class="ft-repo">⭐ GodwynnMets / Sovereign-Credential-Issuer</a>
+      <div style="margin-top:8px;display:flex;gap:16px;flex-wrap:wrap;justify-content:flex-end;">
+        <a href="https://iopn.io" target="_blank">IOPn.io</a>
+        <a href="https://testnet.iopn.tech" target="_blank">Explorer</a>
+        <a href="https://iopn.gitbook.io/iopn" target="_blank">Docs</a>
+        <a href="https://discord.gg/iopn" target="_blank">Discord</a>
+      </div>
     </div>
   </footer>
 
 </div><!-- /wrapper -->
 
 <script>
+// ── Session Storage ─────────────────────────────────
+const SESSION_KEY = 'opn_wallet_session';
+
+function saveSession(addr) {
+  try { sessionStorage.setItem(SESSION_KEY, addr); } catch(e) {}
+}
+function restoreSession() {
+  try { return sessionStorage.getItem(SESSION_KEY) || ''; } catch(e) { return ''; }
+}
+function clearSession() {
+  try { sessionStorage.removeItem(SESSION_KEY); } catch(e) {}
+}
+
 // ── State ─────────────────────────────────────────
 const STATE = {
   connected: false,
@@ -931,12 +994,30 @@ const OPN_CHAIN = {
   blockExplorerUrls: ['https://testnet.iopn.tech'],
 };
 
-// ── Tabs ─────────────────────────────────────────
+// ── On Load ───────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = restoreSession();
+  if (saved) {
+    STATE.address = saved;
+    STATE.connected = true;
+    updateWalletUI(saved, true);
+    toast('Session restored · ' + saved.slice(0,6) + '...' + saved.slice(-4), 'info');
+  }
+  updateNexus();
+  // Set min date on expiry picker
+  document.getElementById('f-expiry').min = new Date().toISOString().split('T')[0];
+});
+
+// ── Tabs ──────────────────────────────────────────
 function switchTab(name, el) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   if (el) el.classList.add('active');
   document.getElementById('panel-' + name).classList.add('active');
+  // Smooth scroll tab into view on mobile
+  if (el && el.scrollIntoView) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
 }
 
 // ── Wallet ────────────────────────────────────────
@@ -944,10 +1025,12 @@ async function connectWallet() {
   if (STATE.connected) {
     STATE.connected = false;
     STATE.address = '';
+    clearSession();
     document.getElementById('wallet-btn').textContent = 'Connect Wallet';
     document.getElementById('wallet-btn').classList.remove('connected');
     document.getElementById('nx-wallet').textContent = 'Not connected';
     document.getElementById('nx-wallet').style.color = 'var(--muted)';
+    document.getElementById('session-badge').classList.remove('show');
     toast('Wallet disconnected', 'info');
     return;
   }
@@ -960,6 +1043,7 @@ async function connectWallet() {
       const addr = accounts[0];
       STATE.address = addr;
       STATE.connected = true;
+      saveSession(addr);
 
       // Switch to OPN Chain
       try {
@@ -973,8 +1057,23 @@ async function connectWallet() {
         }
       }
 
-      updateWalletUI(addr);
+      updateWalletUI(addr, false);
       toast('Wallet connected · OPN Chain ID 984', 'success');
+
+      // MetaMask account change listener
+      window.ethereum.on('accountsChanged', (accs) => {
+        if (!accs.length) {
+          STATE.connected = false;
+          STATE.address = '';
+          clearSession();
+          document.getElementById('wallet-btn').textContent = 'Connect Wallet';
+          document.getElementById('wallet-btn').classList.remove('connected');
+        } else {
+          STATE.address = accs[0];
+          saveSession(accs[0]);
+          updateWalletUI(accs[0], false);
+        }
+      });
     } catch (e) {
       toast(e.message || 'Connection failed', 'error');
     } finally {
@@ -984,12 +1083,13 @@ async function connectWallet() {
     // Demo mode
     STATE.address = '0x317074C86d87c378df1E4264FD855c13AA6192a0';
     STATE.connected = true;
-    updateWalletUI(STATE.address);
+    saveSession(STATE.address);
+    updateWalletUI(STATE.address, false);
     toast('Demo mode — connect MetaMask for live transactions', 'info');
   }
 }
 
-function updateWalletUI(addr) {
+function updateWalletUI(addr, restored) {
   const short = addr.slice(0,6) + '...' + addr.slice(-4);
   const btn = document.getElementById('wallet-btn');
   btn.textContent = short;
@@ -997,31 +1097,27 @@ function updateWalletUI(addr) {
   document.getElementById('nx-wallet').textContent = short;
   document.getElementById('nx-wallet').style.color = 'var(--text)';
   document.getElementById('s-block').textContent = '15,977,119';
-}
-
-async function addToMetaMask() {
-  if (typeof window.ethereum !== 'undefined') {
-    try {
-      await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [OPN_CHAIN] });
-      toast('OPN Chain added to MetaMask!', 'success');
-    } catch (e) {
-      toast(e.message, 'error');
-    }
-  } else {
-    toast('MetaMask not detected. Please install it first.', 'error');
+  
+  if (restored) {
+    const badge = document.getElementById('session-badge');
+    badge.classList.add('show');
+    setTimeout(() => badge.classList.remove('show'), 4000);
   }
 }
 
-// ── Issue Credential ─────────────────────────────
+// ── Issue Credential ──────────────────────────────
 async function issueCredential() {
-  if (!STATE.connected) { toast('Please connect your wallet first', 'error'); return; }
-
-  const addr  = document.getElementById('f-addr').value.trim();
-  const name  = document.getElementById('f-name').value.trim();
-  const type  = document.getElementById('f-type').value;
-  const org   = document.getElementById('f-org').value.trim();
-  const desc  = document.getElementById('f-desc').value.trim();
-  const neoid = document.getElementById('f-neoid').value.trim();
+  if (!STATE.connected) {
+    toast('Please connect your wallet first', 'error');
+    return;
+  }
+  
+  const addr = document.getElementById('f-addr').value.trim();
+  const name = document.getElementById('f-name').value.trim();
+  const type = document.getElementById('f-type').value;
+  const org = document.getElementById('f-org').value.trim();
+  const desc = document.getElementById('f-desc').value.trim();
+  const neo = document.getElementById('f-neoid').value.trim();
 
   if (!addr) { toast('Recipient wallet address required', 'error'); return; }
   if (!name) { toast('Recipient name required', 'error'); return; }
@@ -1031,168 +1127,181 @@ async function issueCredential() {
   btn.innerHTML = '<span class="spinner"></span> Broadcasting to OPN Chain...';
   btn.disabled = true;
 
-  await delay(1800);
+  await new Promise(r => setTimeout(r, 1900));
 
-  const tokenId = STATE.credentials.length;
-  const txHash  = '0x' + randomHex(8) + '...' + randomHex(4);
-  const rep     = 25; // (genesis holder would get 50)
-  const now     = new Date();
+  const id = STATE.credentials.length;
+  const tx = '0x' + randomHex(8) + '...' + randomHex(4);
+  const rep = 25;
+  const now = new Date();
 
-  STATE.credentials.push({ tokenId, addr, name, type, org, desc, neoid, txHash, rep, ts: now, valid: true });
+  STATE.credentials.push({ id, addr, name, type, org, desc, neo, tx, rep, ts: now, valid: true });
   STATE.rep += rep;
   STATE.neoPoints += 10;
 
   updateStats();
   updateCredList();
-  addTxRow(txHash, type, name, now);
+  addTx(tx, type, name, now);
   updateNexus();
 
   btn.innerHTML = 'Issue Credential on OPN Chain';
   btn.disabled = false;
-
   document.getElementById('f-addr').value = '';
   document.getElementById('f-name').value = '';
   document.getElementById('f-desc').value = '';
   document.getElementById('f-neoid').value = '';
-
-  toast(`✓ Credential #${tokenId} issued · ${txHash}`, 'success');
+  
+  toast('✓ Credential #' + id + ' issued · ' + tx, 'success');
 }
 
-// ── Verify ────────────────────────────────────────
+// ── Verify Credential ─────────────────────────────
 function verifyCredential() {
-  const input = document.getElementById('verify-input').value.trim();
-  const res   = document.getElementById('verify-result');
-  if (!input) { toast('Enter a Token ID or wallet address', 'error'); return; }
-
-  res.innerHTML = '<div style="display:flex;align-items:center;gap:8px;padding:12px;font-size:13px;color:var(--muted);font-family:var(--font-mono);"><span class="spinner"></span> Querying OPN Chain...</div>';
-
+  const inp = document.getElementById('verify-input').value.trim();
+  const res = document.getElementById('verify-result');
+  if (!inp) { toast('Enter a Token ID or wallet address', 'error'); return; }
+  
+  res.innerHTML = '<div style="display:flex;align-items:center;gap:8px;padding:12px;font-size:12px;color:var(--muted);font-family:var(--font-mono);"><span class="spinner"></span>Querying OPN Chain...</div>';
+  
   setTimeout(() => {
-    const cred = STATE.credentials.find(c =>
-      c.tokenId == input || c.addr.toLowerCase() === input.toLowerCase()
-    );
-    if (cred) {
+    const c = STATE.credentials.find(x => x.id == inp || x.addr.toLowerCase() === inp.toLowerCase());
+    if (c) {
       res.innerHTML = `<div class="verify-card verify-valid">
-        <div style="font-weight:700;margin-bottom:8px;">✓ Valid Credential — Token #${cred.tokenId}</div>
-        <div style="font-size:12px;font-family:var(--font-mono);opacity:0.85;">${cred.type} · ${cred.org}</div>
-        <div style="font-size:12px;font-family:var(--font-mono);margin-top:4px;opacity:0.7;">Holder: ${cred.addr.slice(0,10)}... · Issued: ${cred.ts.toLocaleDateString()}</div>
+        <div style="font-weight:700;margin-bottom:7px;">✓ Valid Credential — Token #${c.id}</div>
+        <div style="font-size:11px;font-family:var(--font-mono);opacity:.85;">${c.type} · ${c.org}</div>
+        <div style="font-size:11px;font-family:var(--font-mono);margin-top:5px;opacity:.7;">Holder: ${c.addr.slice(0,10)}... · Issued: ${c.ts.toLocaleDateString()}</div>
       </div>`;
     } else {
       res.innerHTML = `<div class="verify-card verify-invalid">
         <div style="font-weight:700;">✗ No valid credential found</div>
-        <div style="font-size:12px;font-family:var(--font-mono);margin-top:6px;opacity:0.8;">Token ID or address not found in registry.</div>
+        <div style="font-size:11px;font-family:var(--font-mono);margin-top:5px;opacity:.8;">Token ID or address not found in registry.</div>
       </div>`;
     }
   }, 1200);
 }
 
-// ── Helpers ───────────────────────────────────────
+// ── Revoke ────────────────────────────────────────
+function revoke(id) {
+  const c = STATE.credentials.find(x => x.id === id);
+  if (c) {
+    c.valid = false;
+    updateCredList();
+    toast('Credential #' + id + ' revoked', 'info');
+  }
+}
+
+// ── UI Updates ────────────────────────────────────
 function updateStats() {
-  document.getElementById('s-issued').textContent  = STATE.credentials.length;
+  document.getElementById('s-issued').textContent = STATE.credentials.length;
   document.getElementById('s-holders').textContent = new Set(STATE.credentials.map(c => c.addr)).size;
-  document.getElementById('s-rep').textContent     = STATE.rep;
+  document.getElementById('s-rep').textContent = STATE.rep;
 }
 
 function updateCredList() {
-  const list  = document.getElementById('cred-list');
-  const count = document.getElementById('reg-count');
-  count.textContent = STATE.credentials.length + ' records';
-
+  const list = document.getElementById('cred-list');
+  document.getElementById('reg-count').textContent = STATE.credentials.length + ' records';
+  
   if (!STATE.credentials.length) {
     list.innerHTML = '<div class="empty"><span class="empty-icon">📋</span>No credentials issued yet.</div>';
     return;
   }
+  
   list.innerHTML = STATE.credentials.map(c => {
-    const init = c.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const ini = c.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
     return `<div class="cred-item">
       <div class="cred-left">
-        <div class="cred-avatar">${init}</div>
-        <div>
-          <div class="cred-name">${c.name}</div>
-          <div class="cred-meta">Token #${c.tokenId} · ${c.type} · ${c.org}</div>
-        </div>
+        <div class="cred-avatar">${ini}</div>
+        <div><div class="cred-name">${c.name}</div><div class="cred-meta">Token #${c.id} · ${c.type}</div></div>
       </div>
       <div class="cred-right">
         <span class="badge ${c.valid ? 'badge-green' : 'badge-red'}">${c.valid ? 'Valid' : 'Revoked'}</span>
-        ${c.valid ? `<button class="btn btn-sm" onclick="revoke(${c.tokenId})" title="Revoke">✕</button>` : ''}
+        ${c.valid ? `<button class="btn btn-sm" onclick="revoke(${c.id})" title="Revoke">✕</button>` : ''}
       </div>
     </div>`;
   }).join('');
 }
 
-function revoke(id) {
-  const c = STATE.credentials.find(x => x.tokenId === id);
-  if (c) { c.valid = false; updateCredList(); toast(`Credential #${id} revoked on OPN Chain`, 'info'); }
-}
-
-function addTxRow(txHash, type, name, ts) {
+function addTx(tx, type, name, ts) {
   const list = document.getElementById('tx-list');
   if (list.querySelector('.empty')) list.innerHTML = '';
-  const row = document.createElement('div');
-  row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;';
-  row.innerHTML = `
-    <div>
-      <div style="font-weight:600;color:var(--text);">${type} → ${name}</div>
-      <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-top:2px;">${txHash}</div>
-    </div>
-    <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);">${ts.toLocaleTimeString()}</div>`;
-  list.prepend(row);
+  const r = document.createElement('div');
+  r.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:12px;';
+  r.innerHTML = `<div><div style="font-weight:600;color:var(--text);">${type} → ${name}</div><div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-top:3px;">${tx}</div></div><div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);">${ts.toLocaleTimeString()}</div>`;
+  list.prepend(r);
 }
 
 function updateNexus() {
   document.getElementById('nx-rep').textContent = STATE.rep;
-  const pct = Math.min(STATE.rep / 1000 * 100, 100);
+  const pct = Math.min((STATE.rep / 1000) * 100, 100);
   document.getElementById('nx-rep-bar').style.width = pct + '%';
 
-  const tiers = ['common','rare','epic','legendary','mythic'];
-  const thresholds = [0,1000,5000,10000,Infinity];
-  let current = 0;
-  for (let i=0;i<thresholds.length-1;i++) {
-    if (STATE.rep >= thresholds[i]) current = i;
+  const tiers = ['common', 'rare', 'epic', 'legendary', 'mythic'];
+  const thresholds = [0, 1000, 5000, 10000, Infinity];
+  let currentTier = 0;
+  
+  for (let i = 0; i < thresholds.length - 1; i++) {
+    if (STATE.rep >= thresholds[i]) currentTier = i;
   }
-  tiers.forEach((t,i) => {
-    document.getElementById('tier-'+t).classList.toggle('current', i===current);
+
+  tiers.forEach((t, i) => {
+    document.getElementById('tier-' + t).classList.toggle('current', i === currentTier);
   });
-  const labels = ['Common','Rare','Epic','Legendary','Mythic'];
-  const next   = thresholds[Math.min(current+1,thresholds.length-1)];
-  document.getElementById('nx-tier-label').textContent =
-    `${labels[current]} tier · ${STATE.rep} / ${next === Infinity ? '∞' : next.toLocaleString()} REP ${current < 4 ? 'to '+labels[current+1] : '— Max tier'}`;
+
+  const tierNames = ['Common', 'Rare', 'Epic', 'Legendary', 'Mythic'];
+  const nextThreshold = thresholds[Math.min(currentTier + 1, thresholds.length - 1)];
+  const label = nextThreshold === Infinity
+    ? `${tierNames[currentTier]} tier · Max tier unlocked`
+    : `${tierNames[currentTier]} tier · ${STATE.rep} / ${nextThreshold.toLocaleString()} REP to ${tierNames[currentTier + 1]}`;
+  
+  document.getElementById('nx-tier-label').textContent = label;
 }
 
+// ── MetaMask ──────��───────────────────────────────
+async function addToMetaMask() {
+  if (typeof window.ethereum !== 'undefined') {
+    try {
+      await window.ethereum.request({
+        method: 'wallet_addEthereumChain',
+        params: [OPN_CHAIN],
+      });
+      toast('OPN Chain added to MetaMask!', 'success');
+    } catch (e) {
+      toast(e.message || 'Failed to add network', 'error');
+    }
+  } else {
+    toast('MetaMask not detected', 'error');
+  }
+}
+
+// ── Copy helpers ──────────────────────────────────
 function copyAbi() {
-  const abi = `[{"inputs":[{"internalType":"address","name":"admin","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"},{"indexed":true,"internalType":"address","name":"recipient","type":"address"},{"indexed":true,"internalType":"address","name":"issuedBy","type":"address"},{"indexed":false,"internalType":"string","name":"credentialType","type":"string"},{"indexed":false,"internalType":"uint256","name":"repAwarded","type":"uint256"}],"name":"CredentialIssued","type":"event"}]`;
-  navigator.clipboard.writeText(abi).catch(() => {});
+  const sample = '[{"inputs":[{"internalType":"address","name":"admin","type":"address"}],"stateMutability":"nonpayable","type":"constructor"}]';
+  navigator.clipboard.writeText(sample).catch(() => {});
   toast('ABI copied to clipboard', 'success');
 }
 
-// ── Toast ─────────────────────────────────────────
-function toast(msg, type='info') {
-  const area = document.getElementById('toasts');
-  const el = document.createElement('div');
-  el.className = `toast toast-${type}`;
-  const icons = { success:'✓', error:'✕', info:'ℹ' };
-  el.innerHTML = `<span style="font-size:14px;flex-shrink:0;">${icons[type]||'ℹ'}</span><span>${msg}</span>`;
-  area.appendChild(el);
-  setTimeout(() => el.remove(), 4000);
-}
-
-// ── Loading ───────────────────────────────────────
-function showLoading(msg='Processing...') {
+// ── Loading overlay ───────────────────────────────
+function showLoading(msg) {
   document.getElementById('loading-text').textContent = msg;
   document.getElementById('loading').classList.add('show');
 }
-function hideLoading() { document.getElementById('loading').classList.remove('show'); }
+function hideLoading() {
+  document.getElementById('loading').classList.remove('show');
+}
 
 // ── Utils ─────────────────────────────────────────
-const delay = ms => new Promise(r => setTimeout(r, ms));
-const randomHex = n => [...Array(n)].map(()=>Math.floor(Math.random()*16).toString(16)).join('');
+const randomHex = (n) => [...Array(n)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
 
-// ── Init ──────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  updateStats();
-  updateNexus();
-  // Pre-fill today
-  document.getElementById('f-expiry').min = new Date().toISOString().split('T')[0];
-});
+// ── Toast ─────────────────────────────────────────
+function toast(msg, type = 'info') {
+  const container = document.getElementById('toasts');
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  
+  const icons = { success: '✓', error: '✕', info: 'ℹ', warn: '⚠' };
+  el.innerHTML = `<span style="font-size:13px;flex-shrink:0;">${icons[type] || 'ℹ'}</span><span>${msg}</span>`;
+  
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 4200);
+}
 </script>
 </body>
 </html>
