@@ -7,391 +7,276 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.5/ethers.umd.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-  <meta property="og:title" content="Sovereign Credential Issuer · IOPn OPN Chain" />
-  <meta property="og:description" content="Issue verifiable soulbound credentials on OPN Chain. Powered by IOPn — NeoID · REP · Genesis n-Badge." />
-  <meta property="og:url" content="https://godwynnmets.github.io/Sovereign-Credential-Issuer/" />
-  <meta name="theme-color" content="#059669" />
   <style>
     body { font-family: 'Inter', system-ui, sans-serif; }
-    .card { transition: all 0.3s; }
+    .card { transition: all 0.3s ease; }
     .card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); }
-    .pulse-dot { 
-      display: inline-block;
-      width: 8px; 
-      height: 8px; 
-      background: #10b981; 
-      border-radius: 50%; 
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
+    .status-dot { animation: pulse 2s infinite; }
   </style>
 </head>
 <body class="bg-gray-950 text-white min-h-screen">
   <div class="max-w-6xl mx-auto p-6">
     <!-- Header -->
-    <div class="flex justify-between items-center mb-10">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
       <div>
         <h1 class="text-4xl font-bold flex items-center gap-3">
-          <span class="text-emerald-500 text-5xl">⋂</span> Sovereign Credential Issuer
+          <span class="text-emerald-500 text-5xl">⋂</span> 
+          Sovereign Credential Issuer
         </h1>
-        <p class="text-emerald-400 mt-2 flex items-center gap-2">
-          <span class="pulse-dot"></span> OPN Chain Testnet • Chain ID 984
-        </p>
+        <p class="text-emerald-400 mt-1">Soulbound NeoID Credentials • REP &amp; Genesis Multiplier • OPN Chain</p>
       </div>
-      <div class="flex items-center gap-4">
-        <span class="text-emerald-400 text-sm font-mono px-3 py-1 bg-emerald-900/30 rounded-full" id="repDisplay">REP: 0</span>
+      
+      <div class="flex flex-wrap gap-3">
+        <a href="https://faucet.iopn.tech/" target="_blank" 
+           class="bg-gray-800 hover:bg-gray-700 px-5 py-3 rounded-2xl text-sm flex items-center gap-2">
+          <i class="fa-solid fa-faucet"></i> Get Test OPN
+        </a>
         <button onclick="connectWallet()" id="connectBtn"
-          class="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-2xl font-medium flex items-center gap-2 transition">
-          <i class="fa-solid fa-wallet"></i> <span id="connectText">Connect Wallet</span>
+          class="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-2xl font-medium flex items-center gap-2">
+          <i class="fa-solid fa-wallet"></i> 
+          <span id="connectText">Connect Wallet</span>
         </button>
       </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      <!-- Left Column: Issue Credential -->
-      <div class="lg:col-span-5 bg-gray-900 rounded-3xl p-8 border border-gray-800">
+      <!-- Issue Credential Form -->
+      <div class="lg:col-span-5 bg-gray-900 rounded-3xl p-8">
         <h2 class="text-2xl font-semibold mb-6 flex items-center gap-2">
-          <i class="fa-solid fa-plus-circle text-emerald-500"></i> Issue New Credential
+          <i class="fa-solid fa-plus-circle"></i> Issue New Credential
         </h2>
         
         <form id="issueForm" onsubmit="issueCredential(event)" class="space-y-6">
           <div>
-            <label class="block text-sm font-medium mb-2 text-gray-300">Recipient Address</label>
-            <input type="text" id="recipient" required placeholder="0x..."
-              class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3 focus:outline-none focus:border-emerald-500 transition text-white placeholder-gray-500">
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium mb-2 text-gray-300">Recipient Name</label>
-            <input type="text" id="recipientName" required placeholder="Full Name"
-              class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3 focus:outline-none focus:border-emerald-500 transition text-white placeholder-gray-500">
+            <label class="block text-sm mb-2 text-gray-300">Recipient Address</label>
+            <input type="text" id="recipient" required placeholder="0x..." 
+              class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3 focus:outline-none focus:border-emerald-500">
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium mb-2 text-gray-300">Credential Type</label>
-              <select id="credType" required class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition">
+              <label class="block text-sm mb-2 text-gray-300">Credential Type</label>
+              <select id="credType" class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3">
                 <option value="NeoID Verified">NeoID Verified</option>
                 <option value="Employee Certificate">Employee Certificate</option>
                 <option value="Training Certificate">Training Certificate</option>
                 <option value="Loyalty Badge">Loyalty Badge</option>
                 <option value="Service Completion">Service Completion</option>
-                <option value="Customer Verification">Customer Verification</option>
-                <option value="Vehicle Service Record">Vehicle Service Record</option>
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium mb-2 text-gray-300">Valid Until (days)</label>
-              <input type="number" id="validDays" value="365" min="0"
-                class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition">
+              <label class="block text-sm mb-2 text-gray-300">Valid Until (seconds from now)</label>
+              <input type="number" id="validUntil" value="0" 
+                class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3">
             </div>
           </div>
 
           <div>
-            <label class="block text-sm font-medium mb-2 text-gray-300">Organisation</label>
+            <label class="block text-sm mb-2 text-gray-300">Organisation</label>
             <input type="text" id="organisation" value="Elizade Nigeria Limited" required
-              class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition">
+              class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3">
           </div>
 
           <div>
-            <label class="block text-sm font-medium mb-2 text-gray-300">Description</label>
-            <textarea id="description" required rows="3" placeholder="Credential details..."
-              class="w-full bg-gray-800 border border-gray-700 rounded-3xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition placeholder-gray-500"></textarea>
+            <label class="block text-sm mb-2 text-gray-300">Description</label>
+            <textarea id="description" required rows="3" placeholder="Describe the achievement or verification..."
+              class="w-full bg-gray-800 border border-gray-700 rounded-3xl px-4 py-3"></textarea>
           </div>
 
           <div>
-            <label class="block text-sm font-medium mb-2 text-gray-300">NeoID Hash (optional)</label>
-            <input type="text" id="neoIdHash" placeholder="neoid:username:0x..." 
-              class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition placeholder-gray-500">
+            <label class="block text-sm mb-2 text-gray-300">NeoID Hash (optional)</label>
+            <input type="text" id="neoIdHash" placeholder="0x..." 
+              class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3">
           </div>
 
-          <button type="submit" id="submitBtn"
-            class="w-full bg-emerald-600 hover:bg-emerald-700 py-4 rounded-2xl font-semibold text-lg transition disabled:opacity-50 disabled:cursor-not-allowed">
-            <i class="fa-solid fa-check-circle mr-2"></i> Issue Soulbound Credential
+          <button type="submit" id="issueBtn"
+            class="w-full bg-emerald-600 hover:bg-emerald-700 py-4 rounded-2xl font-semibold text-lg disabled:opacity-50">
+            Issue Soulbound Credential
           </button>
         </form>
-
-        <div class="mt-6 p-4 bg-emerald-900/20 border border-emerald-500/30 rounded-2xl">
-          <p class="text-xs text-emerald-300 flex items-center gap-2">
-            <i class="fa-solid fa-shield-check"></i> <strong>Soulbound:</strong> Non-transferable credentials
-          </p>
-        </div>
       </div>
 
-      <!-- Right Column: My Credentials + Tools -->
+      <!-- Right Column -->
       <div class="lg:col-span-7 space-y-8">
-        <!-- Status & Network Info -->
+        <!-- Live Status -->
         <div class="bg-emerald-900/30 border border-emerald-500/30 rounded-3xl p-6">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-emerald-400 font-medium flex items-center gap-2">
-                <i class="fa-solid fa-circle-check text-emerald-500"></i> Deployed on OPN Testnet
-              </p>
-              <p class="text-sm text-gray-400 mt-1">Chain ID: 984 | <span class="font-mono text-xs">0x7F3a2E9d1C84bB6e0D5F8A3c2B9e1D7F4A6C8E2d</span></p>
-            </div>
-            <a href="https://testnet.iopn.tech/" target="_blank" class="text-emerald-500 hover:text-emerald-400 transition">
-              <i class="fa-solid fa-arrow-up-right-from-square"></i>
-            </a>
-          </div>
+          <p class="flex items-center gap-2 text-emerald-400 font-medium">
+            <span class="w-3 h-3 bg-emerald-500 rounded-full status-dot"></span>
+            Live on OPN Testnet (Chain ID: 984)
+          </p>
+          <p class="text-sm text-gray-400 mt-2">
+            Deployed using Hardhat • 
+            <a href="https://testnet.iopn.tech/" target="_blank" class="text-emerald-500 hover:underline">Testnet Explorer</a>
+          </p>
         </div>
 
         <!-- My Credentials -->
-        <div class="bg-gray-900 rounded-3xl p-8 border border-gray-800">
+        <div class="bg-gray-900 rounded-3xl p-8">
           <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-semibold flex items-center gap-2">
-              <i class="fa-solid fa-certificate text-emerald-500"></i> My Credentials
-            </h2>
+            <h2 class="text-2xl font-semibold">My Credentials</h2>
             <button onclick="loadMyCredentials()" 
-              class="text-emerald-400 hover:text-emerald-300 text-sm flex items-center gap-1 transition">
+              class="text-emerald-400 hover:text-white flex items-center gap-2 text-sm">
               <i class="fa-solid fa-rotate"></i> Refresh
             </button>
           </div>
-          <div id="credentialsList" class="grid grid-cols-1 gap-4 min-h-[250px]">
-            <p class="text-gray-400 text-center py-10">No credentials yet. Connect wallet and issue your first credential above!</p>
-          </div>
-        </div>
-
-        <!-- Stats -->
-        <div class="grid grid-cols-2 gap-4">
-          <div class="bg-gray-900 rounded-2xl p-6 border border-gray-800">
-            <p class="text-gray-400 text-sm mb-2">Total Issued</p>
-            <p class="text-3xl font-bold text-emerald-500" id="statIssued">0</p>
-          </div>
-          <div class="bg-gray-900 rounded-2xl p-6 border border-gray-800">
-            <p class="text-gray-400 text-sm mb-2">REP Points</p>
-            <p class="text-3xl font-bold text-emerald-500" id="statRep">0</p>
+          <div id="credentialsList" class="grid grid-cols-1 gap-4 min-h-[300px]">
+            <p class="text-gray-400">Connect your wallet to view issued credentials</p>
           </div>
         </div>
 
         <!-- Metadata Generator -->
-        <div class="bg-gray-900 rounded-3xl p-8 border border-gray-800">
-          <h2 class="text-2xl font-semibold mb-4 flex items-center gap-2">
-            <i class="fa-solid fa-code text-emerald-500"></i> Metadata Generator
-          </h2>
+        <div class="bg-gray-900 rounded-3xl p-8">
+          <h2 class="text-2xl font-semibold mb-4">Metadata Generator</h2>
           <button onclick="generateMetadata()" 
-            class="bg-gray-800 hover:bg-gray-700 px-6 py-3 rounded-2xl transition flex items-center gap-2">
-            <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Token Metadata JSON
+            class="bg-gray-800 hover:bg-gray-700 px-6 py-3 rounded-2xl">
+            Generate Token Metadata JSON
           </button>
-          <pre id="metadataOutput" class="mt-4 bg-black p-4 rounded-2xl text-xs overflow-auto max-h-64 border border-gray-800 text-emerald-400 font-mono">Ready to generate...</pre>
+          <pre id="metadataOutput" class="mt-4 bg-black/70 p-4 rounded-2xl text-xs overflow-auto max-h-60 text-gray-300"></pre>
+        </div>
+
+        <!-- Hardhat Integration Notes -->
+        <div class="bg-gray-900 rounded-3xl p-8 text-sm">
+          <h3 class="font-semibold mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-hard-drive"></i> Hardhat Deployment Notes
+          </h3>
+          <ul class="space-y-2 text-gray-400">
+            <li>• Run <code class="bg-gray-800 px-2 py-1 rounded">npm run deploy:testnet</code> to deploy</li>
+            <li>• Update <strong>CONTRACT_ADDRESS</strong> below with the new address</li>
+            <li>• Use your Genesis n-Badge wallet as admin for REP multipliers</li>
+            <li>• All issued credentials are soulbound &amp; NeoID compatible</li>
+          </ul>
         </div>
       </div>
-    </div>
-
-    <!-- Footer -->
-    <div class="mt-16 pt-8 border-t border-gray-800 text-center text-gray-500 text-sm">
-      <p>Built on OPN Chain · <span class="font-mono">Chain ID: 984</span> · Powered by <strong class="text-emerald-400">IOPn</strong></p>
-      <p class="mt-2">
-        <a href="https://github.com/GodwynnMets/Sovereign-Credential-Issuer" target="_blank" class="text-emerald-500 hover:text-emerald-400 transition">
-          GitHub Repository ↗
-        </a>
-      </p>
     </div>
   </div>
 
   <script>
-    let provider, signer, contract, userAddress;
-    const CONTRACT_ADDRESS = "0x7F3a2E9d1C84bB6e0D5F8A3c2B9e1D7F4A6C8E2d";
-    const OPN_CHAIN_ID = 984;
-    const OPN_CHAIN_HEX = "0x3D8";
+    let provider, signer, contract;
+    
+    // ←←← UPDATE THIS AFTER DEPLOYMENT ←←←
+    const CONTRACT_ADDRESS = "0xYOUR_DEPLOYED_CONTRACT_ADDRESS_HERE";
 
     const ABI = [
-      "function issueCredential(address to, string credType, string organisation, string description, string neoIdHash, uint256 validUntil, string tokenURI_) external returns (uint256)",
+      "function issueCredential(address to,string credentialType,string organisation,string description,string neoIdHash,uint256 validUntil,string tokenURI_) external returns (uint256)",
       "function getHolderTokens(address holder) external view returns (uint256[])",
-      "function getCredential(uint256 tokenId) external view returns (tuple(address recipient, string credentialType, string organisation, string description, string neoIdHash, uint256 issuedAt, uint256 validUntil, bool valid, address issuedBy, uint256 repReward))",
-      "function verifyCredential(uint256 tokenId) external view returns (bool, string, string)",
-      "function getREPBalance(address holder) external view returns (uint256)",
-      "function isGenesisHolder(address w) external view returns (bool)"
+      "function getCredential(uint256 tokenId) external view returns (tuple(address recipient,string credentialType,string organisation,string description,string neoIdHash,uint256 issuedAt,uint256 validUntil,bool valid,address issuedBy,uint256 repReward))",
+      "function verifyCredential(uint256 tokenId) external view returns (bool,string,string)"
     ];
 
-    const OPN_NETWORK = {
-      chainId: OPN_CHAIN_HEX,
-      chainName: "OPN Chain Testnet",
-      nativeCurrency: { name: "OPN", symbol: "OPN", decimals: 18 },
-      rpcUrls: ["https://testnet-rpc.iopn.tech", "https://testnet-rpc2.iopn.tech"],
-      blockExplorerUrls: ["https://testnet.iopn.tech"]
-    };
-
     async function connectWallet() {
-      if (!window.ethereum) return alert("Please install MetaMask!");
-      
+      if (!window.ethereum) return alert("MetaMask is required for OPN Testnet!");
+
       try {
-        const accounts = await window.ethereum.request({ method: "eth_accounts" });
-        if (accounts.length > 0) {
-          userAddress = accounts[0];
-          provider = new ethers.BrowserProvider(window.ethereum);
-          signer = await provider.getSigner();
-          contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-          updateUI();
+        provider = new ethers.BrowserProvider(window.ethereum);
+        const network = await provider.getNetwork();
+
+        if (network.chainId !== 984n) {
+          alert("⚠️ Please switch to OPN Testnet (Chain ID: 984) in MetaMask");
           return;
         }
 
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-        
-        const chainId = await window.ethereum.request({ method: "eth_chainId" });
-        if (chainId !== OPN_CHAIN_HEX) {
-          try {
-            await window.ethereum.request({
-              method: "wallet_switchEthereumChain",
-              params: [{ chainId: OPN_CHAIN_HEX }]
-            });
-          } catch (err) {
-            if (err.code === 4902) {
-              await window.ethereum.request({
-                method: "wallet_addEthereumChain",
-                params: [OPN_NETWORK]
-              });
-            }
-          }
-        }
-
-        provider = new ethers.BrowserProvider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
         signer = await provider.getSigner();
-        userAddress = await signer.getAddress();
         contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-        
-        updateUI();
-      } catch (error) {
-        console.error("Connection error:", error);
-        alert("Connection failed: " + error.message);
-      }
-    }
 
-    function updateUI() {
-      document.getElementById("connectText").innerHTML = userAddress.slice(0, 6) + "..." + userAddress.slice(-4) + " ✓";
-      document.getElementById("connectBtn").classList.add("bg-emerald-700");
-      document.getElementById("connectBtn").disabled = true;
-      loadMyCredentials();
+        document.getElementById("connectText").innerHTML = "✓ Connected";
+        document.getElementById("connectBtn").classList.add("!bg-emerald-700");
+
+        loadMyCredentials();
+      } catch (error) {
+        alert("Connection error: " + error.message);
+      }
     }
 
     async function issueCredential(e) {
       e.preventDefault();
       if (!contract) return alert("Please connect wallet first!");
 
-      const submitBtn = document.getElementById("submitBtn");
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Processing...';
-
-      const recipient = document.getElementById("recipient").value;
-      const recipientName = document.getElementById("recipientName").value;
-      const credType = document.getElementById("credType").value;
-      const organisation = document.getElementById("organisation").value;
-      const description = document.getElementById("description").value;
-      const neoIdHash = document.getElementById("neoIdHash").value || "";
-      const validDays = parseInt(document.getElementById("validDays").value) || 0;
-      const validUntil = validDays > 0 ? Math.floor(Date.now() / 1000) + (validDays * 86400) : 0;
+      const btn = document.getElementById("issueBtn");
+      btn.disabled = true;
+      btn.innerHTML = "Issuing on Testnet...";
 
       try {
+        const recipient = document.getElementById("recipient").value;
+        const credType = document.getElementById("credType").value;
+        const organisation = document.getElementById("organisation").value;
+        const description = document.getElementById("description").value;
+        const neoIdHash = document.getElementById("neoIdHash").value || "";
+        let validUntil = parseInt(document.getElementById("validUntil").value) || 0;
+        
+        if (validUntil > 0) validUntil = Math.floor(Date.now() / 1000) + validUntil;
+
         const tx = await contract.issueCredential(
-          recipient,
-          credType,
-          organisation,
-          description,
-          neoIdHash,
-          validUntil,
-          "https://sovereign-credential.ipfs.io/metadata/" + Date.now()
+          recipient, credType, organisation, description, neoIdHash, validUntil,
+          `https://godwynnmets.github.io/Sovereign-Credential-Issuer/metadata/${Date.now()}.json`
         );
-        
-        alert("Transaction sent! Waiting for confirmation...");
+
         await tx.wait();
-        alert("✅ Credential Issued Successfully! Recipient earned REP points.");
-        
-        document.getElementById("issueForm").reset();
+        alert("✅ Credential successfully issued on OPN Testnet!");
         loadMyCredentials();
       } catch (error) {
-        console.error(error);
-        alert("❌ Error: " + (error.reason || error.message));
+        alert("Transaction failed: " + (error.shortMessage || error.message));
       } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fa-solid fa-check-circle mr-2"></i> Issue Soulbound Credential';
+        btn.disabled = false;
+        btn.innerHTML = "Issue Soulbound Credential";
       }
     }
 
     async function loadMyCredentials() {
+      const listEl = document.getElementById("credentialsList");
       if (!contract || !signer) return;
-      
-      const list = document.getElementById("credentialsList");
-      list.innerHTML = '<p class="text-gray-400 text-center py-10"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading...</p>';
+
+      listEl.innerHTML = `<p class="text-gray-400">Loading credentials...</p>`;
 
       try {
-        const address = userAddress || await signer.getAddress();
+        const address = await signer.getAddress();
         const tokenIds = await contract.getHolderTokens(address);
-        
+
         if (tokenIds.length === 0) {
-          list.innerHTML = '<p class="text-gray-400 text-center py-10">No credentials yet. Issue your first credential above!</p>';
-          document.getElementById("statIssued").textContent = "0";
-          document.getElementById("statRep").textContent = "0";
+          listEl.innerHTML = `<p class="text-gray-400">No credentials issued yet. Issue your first one!</p>`;
           return;
         }
 
         let html = "";
-        let totalRep = 0;
-
-        for (let id of tokenIds) {
-          const cred = await contract.getCredential(id);
-          totalRep += parseInt(cred.repReward);
-          const issuedDate = new Date(parseInt(cred.issuedAt) * 1000).toLocaleDateString();
-          
+        for (let tokenId of tokenIds) {
+          const cred = await contract.getCredential(tokenId);
           html += `
-            <div class="bg-gray-800 rounded-2xl p-5 card border border-gray-700 hover:border-emerald-500">
-              <div class="flex justify-between items-start mb-3">
+            <div class="bg-gray-800 rounded-2xl p-5 card">
+              <div class="flex justify-between">
                 <div>
-                  <p class="font-semibold text-emerald-400">${cred.credentialType}</p>
+                  <p class="font-semibold">${cred.credentialType}</p>
                   <p class="text-sm text-gray-400">${cred.organisation}</p>
                 </div>
-                <span class="text-xs px-2 py-1 rounded-full ${cred.valid ? 'bg-emerald-900/30 text-emerald-400' : 'bg-red-900/30 text-red-400'}">
-                  ${cred.valid ? '✓ Valid' : '✗ Revoked'}
+                <span class="text-xs px-3 py-1 rounded-full ${cred.valid ? 'bg-emerald-900 text-emerald-400' : 'bg-red-900 text-red-400'}">
+                  ${cred.valid ? '✓ Valid' : 'Revoked'}
                 </span>
               </div>
-              <p class="text-xs text-gray-500 mb-2">Token ID: <span class="font-mono">${id}</span></p>
-              <p class="text-xs text-gray-500">Issued: ${issuedDate}</p>
-              <p class="text-xs mt-2 text-emerald-400">REP Awarded: <strong>+${cred.repReward}</strong></p>
+              <p class="text-xs mt-3 text-gray-500">Token ID: #${tokenId}</p>
+              <p class="text-xs mt-1">REP Awarded: <span class="text-emerald-400 font-medium">${cred.repReward}</span></p>
             </div>`;
         }
-        
-        list.innerHTML = html;
-        document.getElementById("statIssued").textContent = tokenIds.length;
-        document.getElementById("statRep").textContent = totalRep;
-        document.getElementById("repDisplay").textContent = "REP: " + totalRep;
-
+        listEl.innerHTML = html;
       } catch (e) {
-        console.error(e);
-        list.innerHTML = '<p class="text-red-400 text-center py-10">Error loading credentials</p>';
+        listEl.innerHTML = `<p class="text-red-400">Error loading credentials. Make sure contract is deployed.</p>`;
       }
     }
 
     function generateMetadata() {
       const metadata = {
         name: "Sovereign Credential",
-        description: "Verifiable soulbound credential issued on IOPn OPN Chain",
-        image: "https://via.placeholder.com/500?text=Sovereign+Credential",
-        external_url: "https://godwynnmets.github.io/Sovereign-Credential-Issuer",
+        description: "Soulbound verifiable credential on IOPn OPN Chain",
+        image: "https://via.placeholder.com/500/10b981/ffffff?text=SCRED",
         attributes: [
+          { trait_type: "Type", value: document.getElementById("credType")?.value || "NeoID Verified" },
           { trait_type: "Issuer", value: "Elizade Nigeria Limited" },
           { trait_type: "Chain", value: "OPN Testnet" },
-          { trait_type: "Chain ID", value: "984" },
-          { trait_type: "Type", value: "Soulbound" },
-          { trait_type: "Issued At", value: new Date().toISOString() },
-          { trait_type: "Blockchain", value: "IOPn - NeoID Compatible" }
+          { trait_type: "Genesis Holder", value: "Yes" }
         ]
       };
       document.getElementById("metadataOutput").textContent = JSON.stringify(metadata, null, 2);
     }
 
-    window.ethereum?.on("accountsChanged", (accounts) => {
-      if (accounts.length === 0) {
-        location.reload();
-      } else {
-        userAddress = accounts[0];
-        loadMyCredentials();
-      }
-    });
-
-    window.ethereum?.on("chainChanged", () => {
-      location.reload();
-    });
+    tailwind.config = { content: ["*"] };
   </script>
 </body>
 </html>
