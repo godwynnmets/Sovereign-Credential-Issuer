@@ -161,6 +161,8 @@
     
     // ←←← UPDATE THIS AFTER DEPLOYMENT ←←←
     const CONTRACT_ADDRESS = "0xYOUR_DEPLOYED_CONTRACT_ADDRESS_HERE";
+    const OPN_CHAIN_ID = 984;
+    const OPN_RPC = "https://testnet-rpc.iopn.tech";
 
     const ABI = [
       "function issueCredential(address to,string credentialType,string organisation,string description,string neoIdHash,uint256 validUntil,string tokenURI_) external returns (uint256)",
@@ -189,6 +191,43 @@
       }, 5000);
     }
 
+    async function switchToOPNTestnet() {
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x3d8' }], // 984 in hex
+        });
+        return true;
+      } catch (switchError) {
+        // Chain not added yet, add it
+        if (switchError.code === 4902) {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: '0x3d8',
+                chainName: 'OPN Testnet',
+                nativeCurrency: {
+                  name: 'OPN',
+                  symbol: 'OPN',
+                  decimals: 18,
+                },
+                rpcUrls: [OPN_RPC],
+                blockExplorerUrls: ['https://testnet.iopn.tech/'],
+              }],
+            });
+            return true;
+          } catch (addError) {
+            showAlert(`❌ Failed to add OPN Testnet: ${addError.message}`, 'error');
+            return false;
+          }
+        } else {
+          showAlert(`❌ Failed to switch networks: ${switchError.message}`, 'error');
+          return false;
+        }
+      }
+    }
+
     async function connectWallet() {
       if (!window.ethereum) {
         showAlert('❌ MetaMask not found. Please install MetaMask to continue.', 'error');
@@ -200,17 +239,29 @@
         connectBtn.disabled = true;
         connectBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connecting...';
 
-        provider = new ethers.BrowserProvider(window.ethereum);
-        const network = await provider.getNetwork();
-
-        if (network.chainId !== 984n) {
-          showAlert('⚠️ Switch to OPN Testnet (Chain ID: 984) in MetaMask', 'error');
+        // Request account access
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        
+        // Auto-switch to OPN Testnet
+        showAlert('🔄 Switching to OPN Testnet...', 'info');
+        const switched = await switchToOPNTestnet();
+        
+        if (!switched) {
           connectBtn.disabled = false;
           connectBtn.innerHTML = '<i class="fa-solid fa-wallet"></i> <span>Connect Wallet</span>';
           return;
         }
 
-        const accounts = await provider.send("eth_requestAccounts", []);
+        provider = new ethers.BrowserProvider(window.ethereum);
+        const network = await provider.getNetwork();
+
+        if (network.chainId !== BigInt(OPN_CHAIN_ID)) {
+          showAlert('⚠️ Network switch incomplete. Please try again.', 'error');
+          connectBtn.disabled = false;
+          connectBtn.innerHTML = '<i class="fa-solid fa-wallet"></i> <span>Connect Wallet</span>';
+          return;
+        }
+
         signer = await provider.getSigner();
         contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
         isWalletConnected = true;
@@ -220,7 +271,7 @@
         connectBtn.classList.remove('hover:bg-emerald-700');
         connectBtn.classList.add('!bg-emerald-700');
 
-        showAlert(`✅ Connected: ${shortAddress}`, 'success');
+        showAlert(`✅ Connected to OPN Testnet: ${shortAddress}`, 'success');
         loadMyCredentials();
       } catch (error) {
         showAlert(`❌ Connection failed: ${error.message}`, 'error');
