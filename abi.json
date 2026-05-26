@@ -30,12 +30,12 @@
   {
     "inputs": [
       { "internalType": "address", "name": "to", "type": "address" },
-      { "internalType": "string", "name": "credentialType", "type": "string" },
-      { "internalType": "string", "name": "organization", "type": "string" },
+      { "internalType": "string", "name": "credType", "type": "string" },
+      { "internalType": "string", "name": "organisation", "type": "string" },
       { "internalType": "string", "name": "description", "type": "string" },
       { "internalType": "string", "name": "neoIdHash", "type": "string" },
       { "internalType": "uint256", "name": "validUntil", "type": "uint256" },
-      { "internalType": "string", "name": "tokenURI", "type": "string" }
+      { "internalType": "string", "name": "tokenURI_", "type": "string" }
     ],
     "name": "issueCredential",
     "outputs": [ { "internalType": "uint256", "name": "", "type": "uint256" } ],
@@ -114,6 +114,38 @@
     "inputs": [],
     "name": "totalHolders",
     "outputs": [ { "internalType": "uint256", "name": "", "type": "uint256" } ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [ { "internalType": "address", "name": "holder", "type": "address" } ],
+    "name": "getHolderTokens",
+    "outputs": [ { "internalType": "uint256[]", "name": "", "type": "uint256[]" } ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [ { "internalType": "uint256", "name": "tokenId", "type": "uint256" } ],
+    "name": "getCredential",
+    "outputs": [
+      {
+        "components": [
+          { "internalType": "address", "name": "recipient", "type": "address" },
+          { "internalType": "string", "name": "credentialType", "type": "string" },
+          { "internalType": "string", "name": "organisation", "type": "string" },
+          { "internalType": "string", "name": "description", "type": "string" },
+          { "internalType": "string", "name": "neoIdHash", "type": "string" },
+          { "internalType": "uint256", "name": "issuedAt", "type": "uint256" },
+          { "internalType": "uint256", "name": "validUntil", "type": "uint256" },
+          { "internalType": "bool", "name": "valid", "type": "bool" },
+          { "internalType": "address", "name": "issuedBy", "type": "address" },
+          { "internalType": "uint256", "name": "repReward", "type": "uint256" }
+        ],
+        "internalType": "struct SovereignCredentialIssuer.Credential",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   }

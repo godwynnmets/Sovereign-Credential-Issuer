@@ -53,7 +53,7 @@ Visit: **[godwynnmets.github.io/Sovereign-Credential-Issuer](https://godwynnmets
 **SovereignCredentialIssuer (ERC-721 Soulbound)**
 
 | Function | Purpose |
-|----------|---------|
+|----------|----------|
 | `issueCredential()` | Mint credential to wallet + award REP |
 | `verifyCredential()` | Check credential validity & metadata |
 | `getREPBalance()` | Query holder's reputation points |
